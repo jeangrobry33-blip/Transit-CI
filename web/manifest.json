@@ -1,0 +1,35 @@
+{
+    "name": "Transit CI",
+    "short_name": "Transit CI",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#FF7A00",
+    "theme_color": "#FF7A00",
+    "description": "Transit CI - La super app du transport en Côte d'Ivoire",
+    "orientation": "portrait-primary",
+    "prefer_related_applications": false,
+    "icons": [
+        {
+            "src": "icons/Icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-maskable-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "icons/Icon-maskable-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
+}
