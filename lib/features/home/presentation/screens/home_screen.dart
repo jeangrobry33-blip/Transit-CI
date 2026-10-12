@@ -95,42 +95,46 @@ class HomeScreen extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Bonjour, ${user?.fullName.split(' ').first ?? 'voyageur'} 👋',
+                          'Bonjour, ${user?.fullName.split(' ').first ?? 'voyageur'}.',
                           style: Theme.of(context).textTheme.headlineSmall,
                         ),
                         Row(
                           children: [
-                            const Icon(Icons.location_on_rounded, size: 14, color: AppColors.orange),
+                            const Icon(Icons.location_on_rounded, size: 14, color: AppColors.orangeInk),
                             const SizedBox(width: 2),
                             Text(
                               user?.favoriteCityDefault ?? 'Abidjan, Côte d\'Ivoire',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.mist),
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.textMuted),
                             ),
                           ],
                         ),
                       ],
                     ),
                   ),
-                  InkWell(
-                    onTap: () => context.push(RoutePaths.notifications),
-                    borderRadius: BorderRadius.circular(AppRadius.pill),
-                    child: Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(color: Theme.of(context).cardColor, shape: BoxShape.circle),
-                      child: Stack(
-                        children: [
-                          const Center(child: Icon(Icons.notifications_none_rounded)),
-                          Positioned(
-                            top: 10,
-                            right: 10,
-                            child: Container(
-                              width: 8,
-                              height: 8,
-                              decoration: const BoxDecoration(color: AppColors.danger, shape: BoxShape.circle),
+                  Semantics(
+                    label: 'Notifications',
+                    button: true,
+                    child: InkWell(
+                      onTap: () => context.push(RoutePaths.notifications),
+                      borderRadius: BorderRadius.circular(AppRadius.pill),
+                      child: Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(color: Theme.of(context).cardColor, shape: BoxShape.circle),
+                        child: Stack(
+                          children: [
+                            const Center(child: Icon(Icons.notifications_none_rounded)),
+                            Positioned(
+                              top: 11,
+                              right: 11,
+                              child: Container(
+                                width: 8,
+                                height: 8,
+                                decoration: const BoxDecoration(color: AppColors.danger, shape: BoxShape.circle),
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -148,9 +152,9 @@ class HomeScreen extends ConsumerWidget {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.search_rounded, color: AppColors.mist),
+                      const Icon(Icons.search_rounded, color: AppColors.textMuted),
                       const SizedBox(width: AppSpacing.md),
-                      Text('Où allez-vous ?', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.mist)),
+                      Text('Où allez-vous ?', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textMuted)),
                     ],
                   ),
                 ),
@@ -199,9 +203,9 @@ class HomeScreen extends ConsumerWidget {
                           child: const Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.map_rounded, size: 14, color: AppColors.white),
+                              Icon(Icons.map_rounded, size: 14, color: AppColors.night),
                               SizedBox(width: 6),
-                              Text('Ouvrir la carte', style: TextStyle(fontSize: 12, color: AppColors.white)),
+                              Text('Ouvrir la carte', style: TextStyle(fontSize: 12, color: AppColors.night, fontWeight: FontWeight.w600)),
                             ],
                           ),
                         ),
@@ -215,42 +219,13 @@ class HomeScreen extends ConsumerWidget {
               const SizedBox(height: AppSpacing.md),
               TransportModeGrid(items: items),
               const SizedBox(height: AppSpacing.xl),
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                decoration: BoxDecoration(
-                  gradient: AppColors.greenGradient,
-                  borderRadius: BorderRadius.circular(AppRadius.lg),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text('-20% sur votre 1er trajet VTC',
-                              style: TextStyle(color: AppColors.white, fontWeight: FontWeight.w700, fontSize: 16)),
-                          SizedBox(height: 4),
-                          Text('Utilisez le code BIENVENUE20',
-                              style: TextStyle(color: AppColors.white, fontSize: 12)),
-                        ],
-                      ),
-                    ),
-                    const Icon(Icons.local_offer_rounded, color: AppColors.white, size: 32),
-                  ],
-                ),
-              ),
-              const SizedBox(height: AppSpacing.xl),
               SectionHeader(
                 title: 'Trajets récents',
                 actionLabel: 'Voir tout',
                 onAction: () => context.push(RoutePaths.history),
               ),
               const SizedBox(height: AppSpacing.md),
-              _RecentTripTile(
-                icon: Icons.directions_car_rounded,
-                title: 'Plateau → Cocody',
-                subtitle: 'Hier · VTC · 2 200 FCFA',
-              ),
+              const _RecentTripsPlaceholder(),
             ],
           ),
         ),
@@ -259,12 +234,11 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
-class _RecentTripTile extends StatelessWidget {
-  const _RecentTripTile({required this.icon, required this.title, required this.subtitle});
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
+/// Pas d'historique de trajet simulé ici : tant que le trajet n'est pas
+/// réellement enregistré (voir feature `history`), on le dit plutôt que
+/// d'inventer un trajet "Plateau → Cocody" fictif.
+class _RecentTripsPlaceholder extends StatelessWidget {
+  const _RecentTripsPlaceholder();
 
   @override
   Widget build(BuildContext context) {
@@ -280,22 +254,18 @@ class _RecentTripTile extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppColors.modeVtc.withValues(alpha: 0.12),
+              color: AppColors.textMuted.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(AppRadius.md),
             ),
-            child: Icon(icon, color: AppColors.modeVtc, size: 18),
+            child: const Icon(Icons.history_rounded, color: AppColors.textMuted, size: 18),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: Theme.of(context).textTheme.bodyMedium),
-                Text(subtitle, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.mist)),
-              ],
+            child: Text(
+              'Vos trajets récents apparaîtront ici après votre première recherche.',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.textMuted),
             ),
           ),
-          const Icon(Icons.repeat_rounded, color: AppColors.mist),
         ],
       ),
     );

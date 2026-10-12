@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/constants/app_sizes.dart';
 
 class TransportModeItem {
@@ -23,6 +24,8 @@ class TransportModeGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final reduceMotion = MediaQuery.of(context).disableAnimations;
+
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -35,7 +38,7 @@ class TransportModeGrid extends StatelessWidget {
       ),
       itemBuilder: (context, i) {
         final item = items[i];
-        return InkWell(
+        final tile = InkWell(
           onTap: item.onTap,
           borderRadius: BorderRadius.circular(AppRadius.md),
           child: Column(
@@ -61,6 +64,13 @@ class TransportModeGrid extends StatelessWidget {
             ],
           ),
         );
+
+        if (reduceMotion) return tile;
+        // Entrée échelonnée une seule fois à l'ouverture de l'accueil.
+        return tile
+            .animate(delay: Duration(milliseconds: 25 * i))
+            .fadeIn(duration: 220.ms, curve: Curves.easeOut)
+            .slideY(begin: 0.12, end: 0, duration: 220.ms, curve: Curves.easeOut);
       },
     );
   }

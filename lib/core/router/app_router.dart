@@ -21,6 +21,8 @@ import '../../features/interurban/presentation/screens/companies_screen.dart';
 import '../../features/interurban/presentation/screens/seat_selection_screen.dart';
 import '../../features/interurban/presentation/screens/ticket_qr_screen.dart';
 import '../../features/interurban/presentation/screens/trip_search_screen.dart' as interurban;
+import '../../features/legal/presentation/screens/privacy_policy_screen.dart';
+import '../../features/legal/presentation/screens/terms_screen.dart';
 import '../../features/maps/presentation/screens/maps_screen.dart';
 import '../../features/notifications/presentation/screens/notifications_screen.dart';
 import '../../features/onboarding/onboarding_screen.dart';
@@ -101,6 +103,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: RoutePaths.editProfile, builder: (context, state) => const EditProfileScreen()),
       GoRoute(path: RoutePaths.settings, builder: (context, state) => const SettingsScreen()),
       GoRoute(path: RoutePaths.notifications, builder: (context, state) => const NotificationsScreen()),
+      GoRoute(path: RoutePaths.privacyPolicy, builder: (context, state) => const PrivacyPolicyScreen()),
+      GoRoute(path: RoutePaths.terms, builder: (context, state) => const TermsScreen()),
 
       // Administration
       GoRoute(path: RoutePaths.adminDashboard, builder: (context, state) => const AdminDashboardScreen()),

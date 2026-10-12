@@ -43,4 +43,7 @@ class RoutePaths {
   static const adminDrivers = '/admin/drivers';
   static const adminCompanies = '/admin/companies';
   static const adminPayments = '/admin/payments';
+
+  static const privacyPolicy = '/legal/privacy';
+  static const terms = '/legal/terms';
 }

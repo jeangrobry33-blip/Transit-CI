@@ -11,10 +11,18 @@ extension TrafficConditionX on TrafficCondition {
         TrafficCondition.dense => 'Trafic dense',
       };
 
+  /// Fond teinté (badges) — pas pour du texte, voir [textColor].
   Color get color => switch (this) {
         TrafficCondition.fluid => AppColors.success,
         TrafficCondition.moderate => AppColors.warning,
         TrafficCondition.dense => AppColors.danger,
+      };
+
+  /// Variante AA-safe pour texte/icône sur fond clair (voir DESIGN.md §1.1).
+  Color get textColor => switch (this) {
+        TrafficCondition.fluid => AppColors.successInk,
+        TrafficCondition.moderate => AppColors.warningInk,
+        TrafficCondition.dense => AppColors.dangerInk,
       };
 
   IconData get icon => switch (this) {

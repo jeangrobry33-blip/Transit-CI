@@ -90,15 +90,17 @@ class AppButton extends StatelessWidget {
     );
   }
 
+  // Encre sombre sur fond vif plutôt que blanc sur couleur : seul choix qui
+  // passe l'AA (4.5:1) sur les trois couleurs de marque. Voir DESIGN.md §1.1.
   Color _foreground() {
     switch (variant) {
       case AppButtonVariant.primary:
       case AppButtonVariant.secondary:
       case AppButtonVariant.danger:
-        return AppColors.white;
+        return AppColors.night;
       case AppButtonVariant.outline:
       case AppButtonVariant.ghost:
-        return AppColors.orange;
+        return AppColors.orangeInk;
     }
   }
 }

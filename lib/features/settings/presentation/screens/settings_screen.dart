@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/providers/theme_mode_provider.dart';
+import '../../../../core/router/route_paths.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -97,8 +99,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           const SizedBox(height: AppSpacing.xl),
           _SectionLabel('À propos'),
           _SettingsCard(children: [
-            ListTile(title: const Text('Conditions d\'utilisation'), onTap: () {}),
-            ListTile(title: const Text('Politique de confidentialité'), onTap: () {}),
+            ListTile(
+              title: const Text('Conditions d\'utilisation'),
+              trailing: const Icon(Icons.chevron_right_rounded),
+              onTap: () => context.push(RoutePaths.terms),
+            ),
+            ListTile(
+              title: const Text('Politique de confidentialité'),
+              trailing: const Icon(Icons.chevron_right_rounded),
+              onTap: () => context.push(RoutePaths.privacyPolicy),
+            ),
             const ListTile(title: Text('Version'), trailing: Text('1.0.0')),
           ]),
         ],
