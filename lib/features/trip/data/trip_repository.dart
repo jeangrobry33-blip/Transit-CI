@@ -1,47 +1,42 @@
+import 'dart:math';
 import '../../gbaka/data/mock_gbaka_repository.dart';
 import '../../gbaka/domain/transit_line.dart';
-import '../../interurban/data/mock_interurban_repository.dart';
-import 'dart:math';
+import '../../interurban/data/interurban_repository.dart';
 import '../../ride/data/mock_ride_repository.dart';
 import '../../ride/domain/ride_models.dart';
+import '../../../core/data/supabase_service.dart';
 import '../../../core/services/traffic_simulator.dart';
 import '../domain/trip_models.dart';
 
-/// Points de repère — communes d'Abidjan (trajets urbains) et villes de
-/// l'intérieur (trajets interurbains). Les noms de communes correspondent
-/// exactement à ceux utilisés par [MockGbakaRepository] pour que les lignes
-/// se rattachent directement à un lieu recherché.
-class MockTripRepository {
+/// Lieux réels (communes d'Abidjan + villes de l'intérieur, base Supabase)
+/// combinés aux options de trajet par mode. Les noms de communes
+/// correspondent à ceux utilisés par [MockGbakaRepository] pour que les
+/// lignes se rattachent directement à un lieu recherché.
+class TripRepository {
+  TripRepository(this._supabase, this._interurbanRepository);
+
+  final SupabaseService _supabase;
+  final InterurbanRepository _interurbanRepository;
   final _gbakaRepository = MockGbakaRepository();
   final _rideRepository = MockRideRepository();
-  final _interurbanRepository = MockInterurbanRepository();
 
-  static const _abidjanCommunes = [
-    TripPlace(name: 'Plateau', description: 'Commune d\'Abidjan — centre des affaires', scope: PlaceScope.urbanAbidjan),
-    TripPlace(name: 'Cocody', description: 'Commune d\'Abidjan — Riviera, Angré', scope: PlaceScope.urbanAbidjan),
-    TripPlace(name: 'Yopougon', description: 'Commune d\'Abidjan — Siporex, Niangon', scope: PlaceScope.urbanAbidjan),
-    TripPlace(name: 'Abobo', description: 'Commune d\'Abidjan', scope: PlaceScope.urbanAbidjan),
-    TripPlace(name: 'Adjamé', description: 'Commune d\'Abidjan — grand marché, gare routière', scope: PlaceScope.urbanAbidjan),
-    TripPlace(name: 'Marcory', description: 'Commune d\'Abidjan — Zone 4', scope: PlaceScope.urbanAbidjan),
-    TripPlace(name: 'Treichville', description: 'Commune d\'Abidjan', scope: PlaceScope.urbanAbidjan),
-    TripPlace(name: 'Koumassi', description: 'Commune d\'Abidjan — grand marché', scope: PlaceScope.urbanAbidjan),
-    TripPlace(name: 'Port-Bouët', description: 'Commune d\'Abidjan — aéroport FHB', scope: PlaceScope.urbanAbidjan),
-    TripPlace(name: 'Bingerville', description: 'Commune d\'Abidjan', scope: PlaceScope.urbanAbidjan),
-    TripPlace(name: 'Attécoubé', description: 'Commune d\'Abidjan', scope: PlaceScope.urbanAbidjan),
-  ];
-
-  static final _interiorCities = MockInterurbanRepository.ivorianCities
-      .where((c) => c != 'Abidjan')
-      .map((c) => TripPlace(name: c, description: 'Ville de l\'intérieur', scope: PlaceScope.interiorCity))
-      .toList();
-
-  List<TripPlace> get allPlaces => [..._abidjanCommunes, ..._interiorCities];
+  TripPlace _parsePlace(Map<String, dynamic> row) {
+    final lat = row['latitude'] as num?;
+    final lng = row['longitude'] as num?;
+    return TripPlace(
+      name: row['name'] as String,
+      description: (row['description'] as String?) ?? '',
+      scope: row['scope'] == 'urban_abidjan' ? PlaceScope.urbanAbidjan : PlaceScope.interiorCity,
+      location: lat != null && lng != null ? GeoPoint(lat.toDouble(), lng.toDouble()) : null,
+    );
+  }
 
   Future<List<TripPlace>> search(String query) async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    if (query.isEmpty) return allPlaces;
+    final rows = await _supabase.fetchTripPlaces();
+    final places = rows.map(_parsePlace).toList();
+    if (query.isEmpty) return places;
     final q = query.toLowerCase();
-    return allPlaces.where((p) => p.name.toLowerCase().contains(q)).toList();
+    return places.where((p) => p.name.toLowerCase().contains(q)).toList();
   }
 
   /// Construit les options de trajet adaptées à la distance : moyens urbains
@@ -51,7 +46,6 @@ class MockTripRepository {
     TripPlace destination, {
     bool isRaining = false,
   }) async {
-    await Future.delayed(const Duration(milliseconds: 400));
     final now = DateTime.now();
 
     if (destination.scope == PlaceScope.interiorCity) {

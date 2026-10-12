@@ -7,7 +7,6 @@ import '../../../../core/router/route_paths.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/empty_state.dart';
-import '../../data/mock_interurban_repository.dart';
 import '../providers/interurban_controller.dart';
 import '../widgets/trip_card.dart';
 
@@ -30,10 +29,12 @@ class _TripSearchScreenState extends ConsumerState<TripSearchScreen> {
   late bool _searched = widget.initialDestination != null;
 
   Future<void> _pickCity({required bool isOrigin}) async {
+    final cities = await ref.read(interiorCityNamesProvider.future);
+    if (!mounted) return;
     final selected = await showModalBottomSheet<String>(
       context: context,
       builder: (context) => _CityPickerSheet(
-        cities: MockInterurbanRepository.ivorianCities,
+        cities: cities,
         title: isOrigin ? 'Ville de départ' : 'Ville de destination',
       ),
     );

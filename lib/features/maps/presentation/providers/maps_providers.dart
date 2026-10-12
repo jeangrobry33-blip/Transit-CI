@@ -3,8 +3,9 @@ import '../../../../core/providers/weather_provider.dart';
 import '../../data/mock_maps_repository.dart';
 import '../../domain/maps_models.dart';
 import '../../../trip/domain/trip_models.dart';
+import '../../../trip/presentation/providers/trip_providers.dart';
 
-final mapsRepositoryProvider = Provider((ref) => MockMapsRepository());
+final mapsRepositoryProvider = Provider((ref) => MockMapsRepository(ref.read(tripRepositoryProvider)));
 
 final mapsPlacesSearchProvider = FutureProvider.family<List<TripPlace>, String>((ref, query) {
   return ref.read(mapsRepositoryProvider).search(query);

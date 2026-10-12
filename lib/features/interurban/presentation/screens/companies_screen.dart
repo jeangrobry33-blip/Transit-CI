@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_sizes.dart';
+import '../../../../core/widgets/status_badge.dart';
 import '../providers/interurban_controller.dart';
 
 /// Liste des compagnies de transport interurbain partenaires.
@@ -59,13 +60,18 @@ class CompaniesScreen extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.star_rounded, size: 16, color: AppColors.warning),
-                      Text(' ${company.rating}', style: Theme.of(context).textTheme.bodyMedium),
-                    ],
-                  ),
+                  company.rating != null
+                      ? Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.star_rounded, size: 16, color: AppColors.warning),
+                            Text(' ${company.rating}', style: Theme.of(context).textTheme.bodyMedium),
+                          ],
+                        )
+                      : StatusBadge(
+                          label: company.verificationStatus == 'verified' ? 'Vérifié' : 'À vérifier',
+                          color: company.verificationStatus == 'verified' ? AppColors.success : AppColors.mist,
+                        ),
                 ],
               ),
             );

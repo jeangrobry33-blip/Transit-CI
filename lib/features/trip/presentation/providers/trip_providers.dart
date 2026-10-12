@@ -1,9 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/providers/supabase_service_provider.dart';
 import '../../../../core/providers/weather_provider.dart';
-import '../../data/mock_trip_repository.dart';
+import '../../../interurban/presentation/providers/interurban_controller.dart';
+import '../../data/trip_repository.dart';
 import '../../domain/trip_models.dart';
 
-final tripRepositoryProvider = Provider((ref) => MockTripRepository());
+final tripRepositoryProvider = Provider((ref) => TripRepository(
+      ref.read(supabaseServiceProvider),
+      ref.read(interurbanRepositoryProvider),
+    ));
 
 final tripPlacesSearchProvider = FutureProvider.family<List<TripPlace>, String>((ref, query) {
   return ref.read(tripRepositoryProvider).search(query);

@@ -1,13 +1,15 @@
-import '../../trip/data/mock_trip_repository.dart';
+import '../../trip/data/trip_repository.dart';
 import '../../trip/domain/trip_models.dart';
 import '../domain/maps_models.dart';
 
 /// Construit un résumé d'itinéraire (direct + combiné) et les points
 /// d'intérêt simulés le long du trajet, à partir des options déjà calculées
-/// par [MockTripRepository]. À remplacer par un vrai moteur d'itinéraires
+/// par [TripRepository]. À remplacer par un vrai moteur d'itinéraires
 /// (ex. Directions API) et un fournisseur de POI (ex. Places API).
 class MockMapsRepository {
-  final _tripRepository = MockTripRepository();
+  MockMapsRepository(this._tripRepository);
+
+  final TripRepository _tripRepository;
 
   static const _poiPool = [
     PointOfInterest(name: 'Station Petro Ivoire', category: PoiCategory.fuel, distanceMeters: 450),
