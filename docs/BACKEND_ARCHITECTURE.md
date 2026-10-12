@@ -162,9 +162,10 @@ Postgres/Supabase a été créée et peuplée avec les données trouvées :
   rôles `anon`/`authenticated` (lecture publique uniquement).
 - **Tables** (schéma `public`, RLS activée, policies de lecture publique) :
   - `companies` — compagnies et coopératives (type, villes desservies,
-    `verification_status`, `source_url`) : 15 lignes (UTB, SBTA, CTE, GTI,
-    MVST, STIF, SCETG COOP-CA, MUGECI, etc.)
-  - `gares` — gares routières principales : 6 lignes
+    `verification_status`, `source_url`) : 21 lignes (UTB, SBTA, CTE, GTI,
+    MVST, STIF, SCETG COOP-CA, MUGECI, Sabé Transport, STSF, Diarra
+    Transport, KS, Labelle Transport, etc.)
+  - `gares` — gares routières principales : 7 lignes
   - `gare_companies` — table de jointure gare ↔ compagnie
   - `trip_places` — lieux unifiés (communes d'Abidjan + villes de
     l'intérieur), `scope` urban_abidjan/interior_city, `region` : 49 lignes
@@ -173,7 +174,7 @@ Postgres/Supabase a été créée et peuplée avec les données trouvées :
     des informations qualitatives), donc rien n'a été inventé ici ; les
     lignes de démonstration restent dans `MockGbakaRepository` côté Flutter
   - `interurban_routes` — trajets par compagnie (prix, durée,
-    `verification_status`) : 6 lignes
+    `verification_status`) : 11 lignes
   - `informal_transport_notes` — observations qualitatives sur le transport
     informel (gbaka, wôrô-wôrô, taxi-brousse, moto-taxi, pirogue) par région,
     faute de routes structurées disponibles en ligne : 9 lignes
@@ -182,15 +183,32 @@ Postgres/Supabase a été créée et peuplée avec les données trouvées :
   coupures de presse ou d'agrégateurs non officiels, pas de sources
   primaires — ce champ doit guider l'UI admin (badge "à vérifier") et la
   priorité de vérification terrain.
+- **Côté app Flutter, cette base est maintenant branchée** (pas seulement
+  documentée) : `core/data/supabase_service.dart` lit `companies` et
+  `trip_places` en direct ; `InterurbanRepository` (feature `interurban`) et
+  `TripRepository` (feature `trip`) consomment ces données réelles, les
+  horaires/sièges restant générés synthétiquement faute de données réelles
+  disponibles. Voir `lib/core/config/supabase_config.dart` pour les clés.
+- **Deuxième passage de recherche (oct. 2026)** a comblé une partie des
+  trous du premier passage : nouvelles compagnies identifiées pour Bouna
+  (Sabé Transport), Guiglo (STSF, statut opérationnel non confirmé),
+  Touba/Biankouma/Odiénné (Diarra Transport — licence suspendue le
+  24/07/2026 après un accident mortel, puis levée le 27/08/2026 par
+  l'ARTI/DGTTC), Gagnoa (KS, en plus d'UTB) et Bouaflé/Vavoua (Labelle
+  Transport, UTB). L'entrée MUGECI a été repassée en `unverified` : la
+  recherche round 2 n'a pas pu la corroborer comme entité de transport
+  (seul un acronyme proche et sans rapport, "MUGEC-CI", a été trouvé).
+  Pour Tanda, Arrah, Agnibilékrou, Boundiali, Tengréla, Dabakala, Tabou,
+  Grand-Béréby et Guéyo, toujours **aucune compagnie nommée** — à
+  confirmer sur le terrain plutôt que par recherche web.
 
-**Ce qui reste à faire** : brancher `lib/features/*/data/Mock*Repository`
-sur cette base (ex. package `supabase_flutter`) plutôt que des données codées
-en dur, étendre le panneau admin Flutter pour éditer ces tables, et surtout
-**compléter les données** — cette base ne couvre qu'un échantillon ; la
-majorité des compagnies régionales, lignes gbaka réelles et liaisons de
-dernier kilomètre vers les villages restent à collecter sur le terrain
-(coopératives locales, enquêtes aux gares), comme le souligne le rapport de
-recherche.
+**Ce qui reste à faire** : étendre le panneau admin Flutter pour éditer ces
+tables, et surtout **compléter les données** — cette base ne couvre qu'un
+échantillon ; la majorité des compagnies régionales, lignes gbaka réelles et
+liaisons de dernier kilomètre vers les villages restent à collecter sur le
+terrain (coopératives locales, enquêtes aux gares, contact direct avec
+l'ARTI/DGTTC et les délégués du Haut Conseil des Transporteurs), comme le
+souligne le rapport de recherche round 2.
 
 ## 8. Panneau administrateur
 
