@@ -27,7 +27,7 @@ class _DestinationSearchScreenState extends ConsumerState<DestinationSearchScree
 
   @override
   Widget build(BuildContext context) {
-    final booking = ref.watch(rideBookingProvider);
+    final estimate = ref.watch(rideEstimateProvider);
     final placesAsync = ref.watch(placesSearchProvider(_query));
 
     return Scaffold(
@@ -50,8 +50,8 @@ class _DestinationSearchScreenState extends ConsumerState<DestinationSearchScree
                     _LocationRow(
                       icon: Icons.my_location_rounded,
                       iconColor: AppColors.ivoryGreen,
-                      label: booking.pickup?.name ?? 'Ma position actuelle',
-                      sub: booking.pickup?.address ?? 'Détection GPS automatique',
+                      label: estimate.pickup?.name ?? 'Ma position actuelle',
+                      sub: estimate.pickup?.address ?? 'Détection GPS automatique',
                     ),
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: AppSpacing.sm),
@@ -99,9 +99,9 @@ class _DestinationSearchScreenState extends ConsumerState<DestinationSearchScree
                         title: Text(place.name),
                         subtitle: Text(place.address),
                         onTap: () {
-                          ref.read(rideBookingProvider.notifier).setDestination(place);
-                          if (booking.pickup == null) {
-                            ref.read(rideBookingProvider.notifier).setPickup(
+                          ref.read(rideEstimateProvider.notifier).setDestination(place);
+                          if (estimate.pickup == null) {
+                            ref.read(rideEstimateProvider.notifier).setPickup(
                                   const PlaceSuggestion(
                                     name: 'Ma position actuelle',
                                     address: 'Localisation GPS',
@@ -109,7 +109,7 @@ class _DestinationSearchScreenState extends ConsumerState<DestinationSearchScree
                                   ),
                                 );
                           }
-                          context.push(RoutePaths.rideDrivers);
+                          context.push(RoutePaths.rideEstimate);
                         },
                       );
                     },

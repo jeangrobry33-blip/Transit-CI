@@ -11,6 +11,7 @@ class RoutePaths {
   static const otpVerification = '/auth/otp';
 
   static const home = '/home';
+  static const map = '/map';
   static const history = '/history';
   static const favorites = '/favorites';
   static const profile = '/profile';
@@ -19,10 +20,11 @@ class RoutePaths {
   static const settings = '/settings';
   static const notifications = '/notifications';
 
+  static const tripSearch = '/trip/search';
+  static const tripResults = '/trip/results';
+
   static const rideSearch = '/ride/search';
-  static const rideDrivers = '/ride/drivers';
-  static const rideTracking = '/ride/tracking';
-  static const rideRate = '/ride/rate';
+  static const rideEstimate = '/ride/estimate';
 
   static const gbakaLines = '/gbaka/lines';
   static const gbakaLineDetail = '/gbaka/lines/detail';

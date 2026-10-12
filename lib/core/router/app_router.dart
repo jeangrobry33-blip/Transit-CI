@@ -20,19 +20,21 @@ import '../../features/interurban/presentation/screens/booking_payment_screen.da
 import '../../features/interurban/presentation/screens/companies_screen.dart';
 import '../../features/interurban/presentation/screens/seat_selection_screen.dart';
 import '../../features/interurban/presentation/screens/ticket_qr_screen.dart';
-import '../../features/interurban/presentation/screens/trip_search_screen.dart';
+import '../../features/interurban/presentation/screens/trip_search_screen.dart' as interurban;
+import '../../features/maps/presentation/screens/maps_screen.dart';
 import '../../features/notifications/presentation/screens/notifications_screen.dart';
 import '../../features/onboarding/onboarding_screen.dart';
 import '../../features/payment/presentation/screens/payment_methods_screen.dart';
 import '../../features/profile/presentation/screens/edit_profile_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/ride/presentation/screens/destination_search_screen.dart';
-import '../../features/ride/presentation/screens/driver_selection_screen.dart';
-import '../../features/ride/presentation/screens/rate_driver_screen.dart';
-import '../../features/ride/presentation/screens/ride_tracking_screen.dart';
+import '../../features/ride/presentation/screens/fare_estimate_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/shell/main_shell.dart';
 import '../../features/splash/splash_screen.dart';
+import '../../features/trip/domain/trip_models.dart';
+import '../../features/trip/presentation/screens/trip_search_screen.dart';
+import '../../features/trip/presentation/screens/trip_results_screen.dart';
 import '../../features/wallet/presentation/screens/wallet_screen.dart';
 import 'route_paths.dart';
 
@@ -56,11 +58,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => OtpVerificationScreen(phone: state.extra as String? ?? ''),
       ),
 
-      // Réservation VTC / taxi / moto
+      // Planification de trajet unifiée ("Où allez-vous ?")
+      GoRoute(path: RoutePaths.tripSearch, builder: (context, state) => const TripPlannerSearchScreen()),
+      GoRoute(
+        path: RoutePaths.tripResults,
+        builder: (context, state) => TripPlannerResultsScreen(destination: state.extra as TripPlace),
+      ),
+
+      // Estimation de prix VTC / taxi compteur / moto-taxi (pas de réservation)
       GoRoute(path: RoutePaths.rideSearch, builder: (context, state) => const DestinationSearchScreen()),
-      GoRoute(path: RoutePaths.rideDrivers, builder: (context, state) => const DriverSelectionScreen()),
-      GoRoute(path: RoutePaths.rideTracking, builder: (context, state) => const RideTrackingScreen()),
-      GoRoute(path: RoutePaths.rideRate, builder: (context, state) => const RateDriverScreen()),
+      GoRoute(path: RoutePaths.rideEstimate, builder: (context, state) => const FareEstimateScreen()),
 
       // Gbaka / wôrô-wôrô / bus urbain
       GoRoute(path: RoutePaths.gbakaLines, builder: (context, state) => const GbakaLinesScreen()),
@@ -74,7 +81,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: RoutePaths.interurbanCompanies,
         builder: (context, state) => const CompaniesScreen(),
       ),
-      GoRoute(path: RoutePaths.interurbanSearch, builder: (context, state) => const TripSearchScreen()),
+      GoRoute(
+        path: RoutePaths.interurbanSearch,
+        builder: (context, state) =>
+            interurban.TripSearchScreen(initialDestination: state.extra as String?),
+      ),
       GoRoute(path: RoutePaths.interurbanSeats, builder: (context, state) => const SeatSelectionScreen()),
       GoRoute(
         path: RoutePaths.interurbanPayment,
@@ -104,6 +115,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         branches: [
           StatefulShellBranch(routes: [
             GoRoute(path: RoutePaths.home, builder: (context, state) => const HomeScreen()),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(path: RoutePaths.map, builder: (context, state) => const MapsScreen()),
           ]),
           StatefulShellBranch(routes: [
             GoRoute(path: RoutePaths.history, builder: (context, state) => const TripHistoryScreen()),

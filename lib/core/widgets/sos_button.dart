@@ -1,7 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_sizes.dart';
 import '../constants/app_text_styles.dart';
+
+/// Numéros d'urgence nationaux de Côte d'Ivoire — accessibles en un tap
+/// directement depuis le bouton SOS, sans attendre l'alerte Transit CI.
+class _EmergencyNumber {
+  const _EmergencyNumber(this.label, this.number, this.icon);
+  final String label;
+  final String number;
+  final IconData icon;
+}
+
+const _emergencyNumbers = [
+  _EmergencyNumber('Police secours', '111', Icons.local_police_rounded),
+  _EmergencyNumber('Pompiers', '180', Icons.local_fire_department_rounded),
+  _EmergencyNumber('SAMU', '185', Icons.medical_services_rounded),
+];
 
 /// Bouton d'urgence SOS — partage la position en temps réel et alerte les
 /// contacts de confiance / le centre de sécurité Transit CI.
@@ -60,6 +76,16 @@ class SosButton extends StatelessWidget {
 }
 
 class _SosSheet extends StatelessWidget {
+  Future<void> _call(BuildContext context, String number) async {
+    final uri = Uri(scheme: 'tel', path: number);
+    final launched = await launchUrl(uri).catchError((_) => false);
+    if (!launched && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Composez le $number depuis votre téléphone')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -100,6 +126,51 @@ class _SosSheet extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: AppSpacing.xl),
+            Row(
+              children: const [
+                Expanded(child: Divider()),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                  child: Text('ou appelez directement', style: TextStyle(fontSize: 12, color: AppColors.mist)),
+                ),
+                Expanded(child: Divider()),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Row(
+              children: _emergencyNumbers
+                  .map((e) => Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: InkWell(
+                            onTap: () => _call(context, e.number),
+                            borderRadius: BorderRadius.circular(AppRadius.md),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                              decoration: BoxDecoration(
+                                color: AppColors.danger.withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(AppRadius.md),
+                              ),
+                              child: Column(
+                                children: [
+                                  Icon(e.icon, size: 18, color: AppColors.danger),
+                                  const SizedBox(height: 4),
+                                  Text(e.number,
+                                      style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.danger, fontSize: 13)),
+                                  Text(e.label,
+                                      style: const TextStyle(fontSize: 9, color: AppColors.mist),
+                                      textAlign: TextAlign.center,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ))
+                  .toList(),
             ),
           ],
         ),

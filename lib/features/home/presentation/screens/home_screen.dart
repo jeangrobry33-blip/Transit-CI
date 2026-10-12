@@ -17,7 +17,7 @@ class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   void _startRide(BuildContext context, WidgetRef ref, VehicleType type) {
-    ref.read(rideBookingProvider.notifier).setVehicleType(type);
+    ref.read(rideEstimateProvider.notifier).setVehicleType(type);
     context.push(RoutePaths.rideSearch);
   }
 
@@ -138,7 +138,7 @@ class HomeScreen extends ConsumerWidget {
               ),
               const SizedBox(height: AppSpacing.lg),
               InkWell(
-                onTap: () => context.push(RoutePaths.rideSearch),
+                onTap: () => context.push(RoutePaths.tripSearch),
                 borderRadius: BorderRadius.circular(AppRadius.md),
                 child: Container(
                   padding: const EdgeInsets.all(AppSpacing.md),
@@ -156,35 +156,58 @@ class HomeScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
-              Container(
-                height: 160,
-                decoration: BoxDecoration(
-                  color: AppColors.fog,
-                  borderRadius: BorderRadius.circular(AppRadius.lg),
-                ),
-                child: Stack(
-                  children: [
-                    const Center(child: Icon(Icons.map_rounded, size: 56, color: AppColors.mist)),
-                    Positioned(
-                      left: AppSpacing.md,
-                      bottom: AppSpacing.md,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
-                        decoration: BoxDecoration(
-                          color: AppColors.white,
-                          borderRadius: BorderRadius.circular(AppRadius.pill),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: const [
-                            Icon(Icons.my_location_rounded, size: 14, color: AppColors.ivoryGreen),
-                            SizedBox(width: 6),
-                            Text('Position détectée', style: TextStyle(fontSize: 12, color: AppColors.night)),
-                          ],
+              InkWell(
+                onTap: () => context.go(RoutePaths.map),
+                borderRadius: BorderRadius.circular(AppRadius.lg),
+                child: Container(
+                  height: 160,
+                  decoration: BoxDecoration(
+                    color: AppColors.fog,
+                    borderRadius: BorderRadius.circular(AppRadius.lg),
+                  ),
+                  child: Stack(
+                    children: [
+                      const Center(child: Icon(Icons.map_rounded, size: 56, color: AppColors.mist)),
+                      Positioned(
+                        left: AppSpacing.md,
+                        bottom: AppSpacing.md,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                          decoration: BoxDecoration(
+                            color: AppColors.white,
+                            borderRadius: BorderRadius.circular(AppRadius.pill),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: const [
+                              Icon(Icons.my_location_rounded, size: 14, color: AppColors.ivoryGreen),
+                              SizedBox(width: 6),
+                              Text('Position détectée', style: TextStyle(fontSize: 12, color: AppColors.night)),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                      Positioned(
+                        right: AppSpacing.md,
+                        bottom: AppSpacing.md,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                          decoration: BoxDecoration(
+                            color: AppColors.orange,
+                            borderRadius: BorderRadius.circular(AppRadius.pill),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.map_rounded, size: 14, color: AppColors.white),
+                              SizedBox(width: 6),
+                              Text('Ouvrir la carte', style: TextStyle(fontSize: 12, color: AppColors.white)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: AppSpacing.xl),

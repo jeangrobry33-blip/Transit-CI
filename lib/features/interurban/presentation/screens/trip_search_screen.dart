@@ -13,17 +13,21 @@ import '../widgets/trip_card.dart';
 
 /// Recherche de trajets interurbains par ville de départ et d'arrivée.
 class TripSearchScreen extends ConsumerStatefulWidget {
-  const TripSearchScreen({super.key});
+  const TripSearchScreen({super.key, this.initialDestination});
+
+  /// Préremplit la destination, par exemple en arrivant depuis la
+  /// planification de trajet unifiée ("Où allez-vous ?").
+  final String? initialDestination;
 
   @override
   ConsumerState<TripSearchScreen> createState() => _TripSearchScreenState();
 }
 
 class _TripSearchScreenState extends ConsumerState<TripSearchScreen> {
-  String _origin = 'Abidjan';
-  String _destination = 'Bouaké';
+  late String _origin = 'Abidjan';
+  late String _destination = widget.initialDestination ?? 'Bouaké';
   DateTime _date = DateTime.now();
-  bool _searched = false;
+  late bool _searched = widget.initialDestination != null;
 
   Future<void> _pickCity({required bool isOrigin}) async {
     final selected = await showModalBottomSheet<String>(

@@ -58,4 +58,12 @@ extension AffluenceLevelX on AffluenceLevel {
         AffluenceLevel.medium => 'Modérée',
         AffluenceLevel.high => 'Forte affluence',
       };
+
+  /// Niveau d'affluence dégradé d'un cran (plafonné) — utilisé en heure de
+  /// pointe ou sous la pluie, quand davantage de monde attend les transports.
+  AffluenceLevel get bumped => switch (this) {
+        AffluenceLevel.low => AffluenceLevel.medium,
+        AffluenceLevel.medium => AffluenceLevel.high,
+        AffluenceLevel.high => AffluenceLevel.high,
+      };
 }

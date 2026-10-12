@@ -53,21 +53,23 @@ GET  /auth/me
 | rating | float | moyenne calculée par Cloud Function sur les avis |
 | emergencyContacts | string[] | pour le bouton SOS |
 
-### `drivers`
-id, fullName, phone, vehicleType, vehicleModel, plateNumber, rating,
-tripsCount, documents (permis, assurance, carte grise — Cloud Storage),
-verificationStatus, currentLocation (GeoPoint, mis à jour via websocket).
+### `fare_estimate_logs` (VTC / taxi compteur / moto-taxi)
+**Transit CI n'organise pas la course** — il n'y a donc ni `drivers`, ni
+matching, ni suivi de chauffeur assigné. Cette collection ne sert qu'à
+l'analytique (affiner le barème au fil du temps) :
+id, userId, vehicleType, pickup (GeoPoint + commune), destination,
+distanceMeters, estimatedLow, estimatedHigh, trafficCondition, createdAt.
 
-### `rides` (VTC / taxi / moto)
-id, riderId, driverId, vehicleType, pickup (GeoPoint + adresse), destination,
-status (`searching|accepted|arriving|ongoing|completed|cancelled`),
-estimatedFare, finalFare, distanceMeters, durationMinutes, createdAt,
-route (polyline), rating, tip.
+### `trip_places` (lieux unifiés pour "Où allez-vous ?")
+id, name, scope (`urban_abidjan|interior_city`), location (GeoPoint?),
+description, lignes/compagnies qui le desservent (dénormalisé ou résolu par
+requête géospatiale sur `transit_lines` / `bus_companies`).
 
 ### `transit_lines` (gbaka / wôrô-wôrô / bus urbain)
 id, code, mode, origin, destination, stops[], waitMinutesEstimate,
 averagePrice, affluenceLevel (recalculé périodiquement via les positions GPS
-des véhicules partenaires), gpsTracked, activeVehicles[] (positions live).
+des véhicules partenaires + trafic/météo), gpsTracked, activeVehicles[]
+(positions live).
 
 ### `bus_companies`
 id, name, fullName, citiesServed[], rating, logoUrl, contact.
@@ -82,23 +84,32 @@ status, bookedAt.
 
 ### `payments`
 id, userId, method (`orange_money|mtn_money|moov_money|card|wallet`),
-amount, currency=XOF, reference, status, relatedEntity (`ride|booking|topup`),
+amount, currency=XOF, reference, status, relatedEntity (`booking|topup`),
 provider webhook payload brut (audit).
 
 ### `notifications`
 id, userId, category, title, message, read, createdAt — écrit par les Cloud
 Functions/services métier, poussé via FCM.
 
-## 4. Temps réel
+## 4. Temps réel, trafic et itinéraires
 
-- **Position des chauffeurs / véhicules gbaka** : chaque appareil publie sa
-  position toutes les 3-5s sur un topic (Firestore avec écriture throttlée,
-  ou Redis Geo + WebSocket côté Node.js pour réduire les coûts à grande échelle).
-- **Suivi de course côté rider** : écoute en temps réel du document `rides/{id}`
-  (Firestore listener, ou WebSocket `/rides/:id/stream`).
-- **Estimation de trafic** : intégration d'un fournisseur de données trafic
-  (ex. Google Roads/Distance Matrix API) combinée à un modèle interne simple
-  (moyenne mobile par tronçon) pour les axes non couverts.
+- **Position des véhicules partenaires gbaka/wôrô-wôrô** : chaque appareil
+  publie sa position toutes les 3-5s sur un topic (Firestore avec écriture
+  throttlée, ou Redis Geo + WebSocket côté Node.js à l'échelle).
+- **Trafic et météo** (`TrafficSimulator` côté client aujourd'hui) : à
+  remplacer par un vrai fournisseur (Google Roads/Distance Matrix API pour
+  le trafic, une API météo locale pour la pluie) qui ajuste les durées et
+  l'affluence affichées dans la planification de trajet et la carte.
+- **Itinéraires multimodaux combinés** ("Où allez-vous ?", onglet Carte) :
+  un moteur d'itinéraires (ex. Directions API, ou OSRM self-hosted avec un
+  graphe des lignes gbaka/bus) calcule les combinaisons plausibles
+  (ex. gbaka jusqu'à la gare + bus interurbain) plutôt que la génération
+  simulée actuelle.
+- **Points d'intérêt le long d'un trajet** : fournisseur de POI (ex. Places
+  API) filtré par catégorie (station-service, pharmacie, point mobile money).
+- **Mode hors-ligne** : mise en cache côté client des derniers itinéraires et
+  tuiles de carte consultés (ex. `google_maps_flutter` offline tiles ou
+  Mapbox offline regions) pour les zones à connexion instable.
 
 ## 5. Paiements (Orange Money / MTN Money / Moov Money / carte / wallet)
 
