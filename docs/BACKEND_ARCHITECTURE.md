@@ -149,6 +149,49 @@ pour les événements métier (trafic, promotions ciblées géographiquement).
   locaux) + les contacts de confiance, avec position GPS et lien de suivi
   temporaire signé (expire après quelques heures).
 
+## 7bis. Base de données réelle de transport — déjà en place (Supabase)
+
+Suite à la recherche sur le transport réel en Côte d'Ivoire (voir le rapport
+livré à l'utilisateur, non versionné dans ce dépôt), une première base
+Postgres/Supabase a été créée et peuplée avec les données trouvées :
+
+- **Projet** : `eangcvlflycbficpdyej` (eu-west-1) — URL
+  `https://eangcvlflycbficpdyej.supabase.co`, clé publique (publishable)
+  `sb_publishable_o4cGEwh4EuL3-P9jOg8bzA_IoGIqFOp`. Ces clés sont conçues pour
+  être embarquées côté client ; toute l'écriture est bloquée par RLS pour les
+  rôles `anon`/`authenticated` (lecture publique uniquement).
+- **Tables** (schéma `public`, RLS activée, policies de lecture publique) :
+  - `companies` — compagnies et coopératives (type, villes desservies,
+    `verification_status`, `source_url`) : 15 lignes (UTB, SBTA, CTE, GTI,
+    MVST, STIF, SCETG COOP-CA, MUGECI, etc.)
+  - `gares` — gares routières principales : 6 lignes
+  - `gare_companies` — table de jointure gare ↔ compagnie
+  - `trip_places` — lieux unifiés (communes d'Abidjan + villes de
+    l'intérieur), `scope` urban_abidjan/interior_city, `region` : 49 lignes
+  - `transit_lines` — lignes gbaka/wôrô-wôrô/bus urbain : **vide** — la
+    recherche n'a trouvé aucune donnée structurée de ligne réelle (seulement
+    des informations qualitatives), donc rien n'a été inventé ici ; les
+    lignes de démonstration restent dans `MockGbakaRepository` côté Flutter
+  - `interurban_routes` — trajets par compagnie (prix, durée,
+    `verification_status`) : 6 lignes
+  - `informal_transport_notes` — observations qualitatives sur le transport
+    informel (gbaka, wôrô-wôrô, taxi-brousse, moto-taxi, pirogue) par région,
+    faute de routes structurées disponibles en ligne : 9 lignes
+- **`verification_status`** (`verified|unverified|outdated`) sur chaque
+  compagnie/trajet/ligne : la majorité des données trouvées venaient de
+  coupures de presse ou d'agrégateurs non officiels, pas de sources
+  primaires — ce champ doit guider l'UI admin (badge "à vérifier") et la
+  priorité de vérification terrain.
+
+**Ce qui reste à faire** : brancher `lib/features/*/data/Mock*Repository`
+sur cette base (ex. package `supabase_flutter`) plutôt que des données codées
+en dur, étendre le panneau admin Flutter pour éditer ces tables, et surtout
+**compléter les données** — cette base ne couvre qu'un échantillon ; la
+majorité des compagnies régionales, lignes gbaka réelles et liaisons de
+dernier kilomètre vers les villages restent à collecter sur le terrain
+(coopératives locales, enquêtes aux gares), comme le souligne le rapport de
+recherche.
+
 ## 8. Panneau administrateur
 
 Application web séparée (ou section protégée par rôle `admin` custom claim)
