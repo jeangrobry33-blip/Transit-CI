@@ -68,66 +68,26 @@ class PlaceSuggestion {
   final bool isFavorite;
 }
 
-class Driver {
-  const Driver({
-    required this.id,
-    required this.name,
+/// Estimation de prix pour un mode de transport à la demande — Transit CI
+/// n'organise pas la course elle-même (ce n'est pas un service de VTC comme
+/// Yango), elle aide seulement à comparer les options avant de réserver
+/// ailleurs ou de héler un taxi/moto sur place.
+class FareEstimate {
+  const FareEstimate({
     required this.vehicleType,
-    required this.vehicleModel,
-    required this.plateNumber,
-    required this.rating,
-    required this.tripsCount,
-    required this.etaMinutes,
-    required this.photoInitials,
-  });
-
-  final String id;
-  final String name;
-  final VehicleType vehicleType;
-  final String vehicleModel;
-  final String plateNumber;
-  final double rating;
-  final int tripsCount;
-  final int etaMinutes;
-  final String photoInitials;
-}
-
-enum RideStatus { searching, accepted, arriving, ongoing, completed, cancelled }
-
-class RideTrip {
-  const RideTrip({
-    required this.id,
     required this.pickup,
     required this.destination,
-    required this.vehicleType,
-    required this.driver,
-    required this.estimatedFare,
+    required this.lowFare,
+    required this.highFare,
     required this.distanceMeters,
     required this.durationMinutes,
-    this.status = RideStatus.searching,
   });
 
-  final String id;
+  final VehicleType vehicleType;
   final PlaceSuggestion pickup;
   final PlaceSuggestion destination;
-  final VehicleType vehicleType;
-  final Driver driver;
-  final double estimatedFare;
+  final double lowFare;
+  final double highFare;
   final double distanceMeters;
   final int durationMinutes;
-  final RideStatus status;
-
-  RideTrip copyWith({RideStatus? status}) {
-    return RideTrip(
-      id: id,
-      pickup: pickup,
-      destination: destination,
-      vehicleType: vehicleType,
-      driver: driver,
-      estimatedFare: estimatedFare,
-      distanceMeters: distanceMeters,
-      durationMinutes: durationMinutes,
-      status: status ?? this.status,
-    );
-  }
 }

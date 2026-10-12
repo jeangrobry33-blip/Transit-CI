@@ -3,41 +3,52 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_sizes.dart';
+import '../../core/constants/app_text_styles.dart';
 import '../../core/router/route_paths.dart';
 import '../../core/widgets/app_button.dart';
+import '../../core/widgets/ticket_shape.dart';
 import '../splash/splash_screen.dart';
 
 class _OnboardingPage {
-  const _OnboardingPage({required this.icon, required this.title, required this.description});
+  const _OnboardingPage({
+    required this.icon,
+    required this.accent,
+    required this.title,
+    required this.description,
+  });
   final IconData icon;
+  final Color accent;
   final String title;
   final String description;
 }
 
 const _pages = [
   _OnboardingPage(
-    icon: Icons.map_rounded,
-    title: 'Tous les transports, une seule app',
+    icon: Icons.compare_arrows_rounded,
+    accent: AppColors.modeGbaka,
+    title: 'Un seul endroit pour comparer',
     description:
-        'Gbakas, wôrô-wôrô, taxis compteurs, bus, VTC et motos-taxis : trouvez le moyen de transport idéal partout en Côte d\'Ivoire.',
+        'Gbaka, wôrô-wôrô, taxi compteur, bus urbain, VTC ou moto-taxi : Transit CI compare prix et durée, sans réserver de chauffeur.',
   ),
   _OnboardingPage(
-    icon: Icons.near_me_rounded,
-    title: 'Suivez votre trajet en direct',
+    icon: Icons.signpost_rounded,
+    accent: AppColors.modeWoroworo,
+    title: 'Un temps de trajet qui tient compte de la pluie',
     description:
-        'Localisation GPS en temps réel, estimation des temps et des coûts, trafic routier et navigation intelligente.',
+        'Heures de pointe, averses, affluence : l\'estimation du temps de trajet s\'ajuste, elle ne reste pas figée.',
   ),
   _OnboardingPage(
-    icon: Icons.directions_bus_filled_rounded,
-    title: 'Voyagez entre les villes',
+    icon: Icons.confirmation_number_rounded,
+    accent: AppColors.modeInterurbain,
+    title: 'De vraies compagnies, de vraies gares',
     description:
-        'Réservez vos billets avec UTB, SBTA, TSR, AVS et d\'autres compagnies : sièges, paiement et QR code en quelques secondes.',
+        'UTB, SBTA, Sabé Transport et d\'autres compagnies retrouvées par nos recherches de terrain : sièges, paiement et QR code pour voyager entre les villes.',
   ),
   _OnboardingPage(
-    icon: Icons.wallet_rounded,
-    title: 'Payez comme vous le voulez',
-    description:
-        'Orange Money, MTN Money, Moov Money, carte bancaire ou portefeuille Transit CI : le paiement n\'a jamais été aussi simple.',
+    icon: Icons.account_balance_wallet_rounded,
+    accent: AppColors.ivoryGreenDark,
+    title: 'Orange Money, MTN MoMo, Wave',
+    description: 'Payez comme vous le faites déjà, sans compte bancaire à ouvrir.',
   ),
 ];
 
@@ -103,7 +114,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   width: i == _index ? 24 : 8,
                   height: 8,
                   decoration: BoxDecoration(
-                    color: i == _index ? AppColors.orange : AppColors.fog,
+                    // orangeDark (pas orange) : un indicateur a besoin de 3:1
+                    // minimum contre le fond, orange brut n'y arrive pas.
+                    color: i == _index ? AppColors.orangeDark : AppColors.fog,
                     borderRadius: BorderRadius.circular(AppRadius.pill),
                   ),
                 ),
@@ -135,26 +148,47 @@ class _OnboardingPageView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            width: 180,
-            height: 180,
-            decoration: BoxDecoration(
-              gradient: AppColors.heroGradient,
-              borderRadius: BorderRadius.circular(AppRadius.xl),
+          Material(
+            color: page.accent.withValues(alpha: 0.1),
+            shape: const TicketShapeBorder(radius: AppRadius.xl, notchRadius: 12),
+            child: SizedBox(
+              width: 240,
+              height: 150,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Center(
+                      child: Icon(page.icon, size: 56, color: page.accent),
+                    ),
+                  ),
+                  TicketPerforation(color: page.accent.withValues(alpha: 0.35), height: 150),
+                  SizedBox(
+                    width: 48,
+                    child: Center(
+                      child: RotatedBox(
+                        quarterTurns: 3,
+                        child: Text(
+                          'TRANSIT CI',
+                          style: AppTextStyles.caption.copyWith(color: page.accent, letterSpacing: 1.5),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-            child: Icon(page.icon, size: 80, color: AppColors.white),
           ),
           const SizedBox(height: AppSpacing.xxl),
           Text(
             page.title,
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.headlineLarge,
+            style: AppTextStyles.h1,
           ),
           const SizedBox(height: AppSpacing.md),
           Text(
             page.description,
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.mist),
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.textMuted),
           ),
         ],
       ),

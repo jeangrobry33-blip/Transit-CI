@@ -16,16 +16,23 @@ class BusCompany {
     required this.name,
     required this.fullName,
     required this.color,
-    required this.rating,
     required this.citiesServed,
+    this.rating,
+    this.verificationStatus = 'unverified',
+    this.sourceUrl,
   });
 
   final String id;
   final String name;
   final String fullName;
   final Color color;
-  final double rating;
   final List<String> citiesServed;
+  /// `null` quand aucune note réelle n'a été trouvée — on n'invente pas de chiffre.
+  final double? rating;
+  /// `verified` | `unverified` | `outdated` — la plupart des données réelles
+  /// viennent de coupures de presse, pas de sources primaires.
+  final String verificationStatus;
+  final String? sourceUrl;
 }
 
 class BusTrip {

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_sizes.dart';
+import '../../core/constants/app_text_styles.dart';
 import '../../core/router/route_paths.dart';
 import '../auth/presentation/providers/auth_controller.dart';
 
@@ -62,45 +63,48 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    final reduceMotion = MediaQuery.of(context).disableAnimations;
+
     return Scaffold(
       backgroundColor: AppColors.orange,
       body: Center(
         child: ScaleTransition(
-          scale: CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
+          scale: reduceMotion
+              ? const AlwaysStoppedAnimation(1)
+              : CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(AppRadius.xl),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.night.withValues(alpha: 0.2),
-                      blurRadius: 24,
-                      offset: const Offset(0, 12),
-                    ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(AppRadius.xl),
-                  child: Image.asset('assets/branding/logo_mark_rounded.png'),
-                ),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(AppRadius.xl),
+                child: Image.asset('assets/branding/logo_mark_rounded.png', width: 120, height: 120),
               ),
               const SizedBox(height: AppSpacing.lg),
-              const Text(
-                'Transit CI',
-                style: TextStyle(
-                  color: AppColors.white,
-                  fontSize: 28,
-                  fontWeight: FontWeight.w800,
-                ),
+              Text('Transit CI', style: AppTextStyles.display.copyWith(color: AppColors.night)),
+              const SizedBox(height: AppSpacing.sm),
+              // La ligne se trace comme un itinéraire, pas un simple fondu.
+              AnimatedBuilder(
+                animation: _controller,
+                builder: (context, child) {
+                  final progress = reduceMotion ? 1.0 : Curves.easeOut.transform(_controller.value);
+                  return SizedBox(
+                    width: 120,
+                    height: 2,
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: FractionallySizedBox(
+                        widthFactor: progress,
+                        child: Container(color: AppColors.night),
+                      ),
+                    ),
+                  );
+                },
               ),
-              const SizedBox(height: AppSpacing.xs),
+              const SizedBox(height: AppSpacing.sm),
               Text(
-                'Tous vos transports, un seul clic',
-                style: TextStyle(color: AppColors.white.withValues(alpha: 0.85), fontSize: 14),
+                'Gbaka, wôrô-wôrô, taxi, bus, VTC : comparez avant de partir',
+                textAlign: TextAlign.center,
+                style: AppTextStyles.bodyMd.copyWith(color: AppColors.night),
               ),
             ],
           ),

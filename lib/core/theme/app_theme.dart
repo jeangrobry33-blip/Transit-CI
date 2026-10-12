@@ -90,7 +90,9 @@ class AppTheme {
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: AppColors.orange,
+          // Texte sur fond clair/sombre : orangeInk (5.23:1) / orangeLight
+          // (10.33:1) — `orange` brut échoue l'AA en texte (2.61:1).
+          foregroundColor: isDark ? AppColors.orangeLight : AppColors.orangeInk,
           textStyle: AppTextStyles.button,
         ),
       ),
@@ -101,7 +103,7 @@ class AppTheme {
           horizontal: AppSpacing.lg,
           vertical: AppSpacing.md,
         ),
-        hintStyle: AppTextStyles.bodyMd.copyWith(color: AppColors.mist),
+        hintStyle: AppTextStyles.bodyMd.copyWith(color: isDark ? AppColors.mist : AppColors.textMuted),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
           borderSide: BorderSide(color: isDark ? AppColors.surfaceDarkAlt : AppColors.fog),
@@ -112,7 +114,9 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: AppColors.orange, width: 1.5),
+          // orangeDark (pas orange) : un contour a besoin d'un ratio 3:1
+          // minimum contre la surface adjacente, orange brut n'y arrive pas.
+          borderSide: const BorderSide(color: AppColors.orangeDark, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
@@ -121,8 +125,8 @@ class AppTheme {
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: isDark ? AppColors.surfaceDark : AppColors.white,
-        selectedItemColor: AppColors.orange,
-        unselectedItemColor: AppColors.mist,
+        selectedItemColor: isDark ? AppColors.orangeLight : AppColors.orangeInk,
+        unselectedItemColor: isDark ? AppColors.mist : AppColors.textMuted,
         type: BottomNavigationBarType.fixed,
         showUnselectedLabels: true,
         elevation: 0,

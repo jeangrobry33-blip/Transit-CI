@@ -53,21 +53,23 @@ GET  /auth/me
 | rating | float | moyenne calculée par Cloud Function sur les avis |
 | emergencyContacts | string[] | pour le bouton SOS |
 
-### `drivers`
-id, fullName, phone, vehicleType, vehicleModel, plateNumber, rating,
-tripsCount, documents (permis, assurance, carte grise — Cloud Storage),
-verificationStatus, currentLocation (GeoPoint, mis à jour via websocket).
+### `fare_estimate_logs` (VTC / taxi compteur / moto-taxi)
+**Transit CI n'organise pas la course** — il n'y a donc ni `drivers`, ni
+matching, ni suivi de chauffeur assigné. Cette collection ne sert qu'à
+l'analytique (affiner le barème au fil du temps) :
+id, userId, vehicleType, pickup (GeoPoint + commune), destination,
+distanceMeters, estimatedLow, estimatedHigh, trafficCondition, createdAt.
 
-### `rides` (VTC / taxi / moto)
-id, riderId, driverId, vehicleType, pickup (GeoPoint + adresse), destination,
-status (`searching|accepted|arriving|ongoing|completed|cancelled`),
-estimatedFare, finalFare, distanceMeters, durationMinutes, createdAt,
-route (polyline), rating, tip.
+### `trip_places` (lieux unifiés pour "Où allez-vous ?")
+id, name, scope (`urban_abidjan|interior_city`), location (GeoPoint?),
+description, lignes/compagnies qui le desservent (dénormalisé ou résolu par
+requête géospatiale sur `transit_lines` / `bus_companies`).
 
 ### `transit_lines` (gbaka / wôrô-wôrô / bus urbain)
 id, code, mode, origin, destination, stops[], waitMinutesEstimate,
 averagePrice, affluenceLevel (recalculé périodiquement via les positions GPS
-des véhicules partenaires), gpsTracked, activeVehicles[] (positions live).
+des véhicules partenaires + trafic/météo), gpsTracked, activeVehicles[]
+(positions live).
 
 ### `bus_companies`
 id, name, fullName, citiesServed[], rating, logoUrl, contact.
@@ -82,23 +84,32 @@ status, bookedAt.
 
 ### `payments`
 id, userId, method (`orange_money|mtn_money|moov_money|card|wallet`),
-amount, currency=XOF, reference, status, relatedEntity (`ride|booking|topup`),
+amount, currency=XOF, reference, status, relatedEntity (`booking|topup`),
 provider webhook payload brut (audit).
 
 ### `notifications`
 id, userId, category, title, message, read, createdAt — écrit par les Cloud
 Functions/services métier, poussé via FCM.
 
-## 4. Temps réel
+## 4. Temps réel, trafic et itinéraires
 
-- **Position des chauffeurs / véhicules gbaka** : chaque appareil publie sa
-  position toutes les 3-5s sur un topic (Firestore avec écriture throttlée,
-  ou Redis Geo + WebSocket côté Node.js pour réduire les coûts à grande échelle).
-- **Suivi de course côté rider** : écoute en temps réel du document `rides/{id}`
-  (Firestore listener, ou WebSocket `/rides/:id/stream`).
-- **Estimation de trafic** : intégration d'un fournisseur de données trafic
-  (ex. Google Roads/Distance Matrix API) combinée à un modèle interne simple
-  (moyenne mobile par tronçon) pour les axes non couverts.
+- **Position des véhicules partenaires gbaka/wôrô-wôrô** : chaque appareil
+  publie sa position toutes les 3-5s sur un topic (Firestore avec écriture
+  throttlée, ou Redis Geo + WebSocket côté Node.js à l'échelle).
+- **Trafic et météo** (`TrafficSimulator` côté client aujourd'hui) : à
+  remplacer par un vrai fournisseur (Google Roads/Distance Matrix API pour
+  le trafic, une API météo locale pour la pluie) qui ajuste les durées et
+  l'affluence affichées dans la planification de trajet et la carte.
+- **Itinéraires multimodaux combinés** ("Où allez-vous ?", onglet Carte) :
+  un moteur d'itinéraires (ex. Directions API, ou OSRM self-hosted avec un
+  graphe des lignes gbaka/bus) calcule les combinaisons plausibles
+  (ex. gbaka jusqu'à la gare + bus interurbain) plutôt que la génération
+  simulée actuelle.
+- **Points d'intérêt le long d'un trajet** : fournisseur de POI (ex. Places
+  API) filtré par catégorie (station-service, pharmacie, point mobile money).
+- **Mode hors-ligne** : mise en cache côté client des derniers itinéraires et
+  tuiles de carte consultés (ex. `google_maps_flutter` offline tiles ou
+  Mapbox offline regions) pour les zones à connexion instable.
 
 ## 5. Paiements (Orange Money / MTN Money / Moov Money / carte / wallet)
 
@@ -137,6 +148,67 @@ pour les événements métier (trafic, promotions ciblées géographiquement).
   sécurité (équipe support ou intégration avec les services d'urgence
   locaux) + les contacts de confiance, avec position GPS et lien de suivi
   temporaire signé (expire après quelques heures).
+
+## 7bis. Base de données réelle de transport — déjà en place (Supabase)
+
+Suite à la recherche sur le transport réel en Côte d'Ivoire (voir le rapport
+livré à l'utilisateur, non versionné dans ce dépôt), une première base
+Postgres/Supabase a été créée et peuplée avec les données trouvées :
+
+- **Projet** : `eangcvlflycbficpdyej` (eu-west-1) — URL
+  `https://eangcvlflycbficpdyej.supabase.co`, clé publique (publishable)
+  `sb_publishable_o4cGEwh4EuL3-P9jOg8bzA_IoGIqFOp`. Ces clés sont conçues pour
+  être embarquées côté client ; toute l'écriture est bloquée par RLS pour les
+  rôles `anon`/`authenticated` (lecture publique uniquement).
+- **Tables** (schéma `public`, RLS activée, policies de lecture publique) :
+  - `companies` — compagnies et coopératives (type, villes desservies,
+    `verification_status`, `source_url`) : 21 lignes (UTB, SBTA, CTE, GTI,
+    MVST, STIF, SCETG COOP-CA, MUGECI, Sabé Transport, STSF, Diarra
+    Transport, KS, Labelle Transport, etc.)
+  - `gares` — gares routières principales : 7 lignes
+  - `gare_companies` — table de jointure gare ↔ compagnie
+  - `trip_places` — lieux unifiés (communes d'Abidjan + villes de
+    l'intérieur), `scope` urban_abidjan/interior_city, `region` : 49 lignes
+  - `transit_lines` — lignes gbaka/wôrô-wôrô/bus urbain : **vide** — la
+    recherche n'a trouvé aucune donnée structurée de ligne réelle (seulement
+    des informations qualitatives), donc rien n'a été inventé ici ; les
+    lignes de démonstration restent dans `MockGbakaRepository` côté Flutter
+  - `interurban_routes` — trajets par compagnie (prix, durée,
+    `verification_status`) : 11 lignes
+  - `informal_transport_notes` — observations qualitatives sur le transport
+    informel (gbaka, wôrô-wôrô, taxi-brousse, moto-taxi, pirogue) par région,
+    faute de routes structurées disponibles en ligne : 9 lignes
+- **`verification_status`** (`verified|unverified|outdated`) sur chaque
+  compagnie/trajet/ligne : la majorité des données trouvées venaient de
+  coupures de presse ou d'agrégateurs non officiels, pas de sources
+  primaires — ce champ doit guider l'UI admin (badge "à vérifier") et la
+  priorité de vérification terrain.
+- **Côté app Flutter, cette base est maintenant branchée** (pas seulement
+  documentée) : `core/data/supabase_service.dart` lit `companies` et
+  `trip_places` en direct ; `InterurbanRepository` (feature `interurban`) et
+  `TripRepository` (feature `trip`) consomment ces données réelles, les
+  horaires/sièges restant générés synthétiquement faute de données réelles
+  disponibles. Voir `lib/core/config/supabase_config.dart` pour les clés.
+- **Deuxième passage de recherche (oct. 2026)** a comblé une partie des
+  trous du premier passage : nouvelles compagnies identifiées pour Bouna
+  (Sabé Transport), Guiglo (STSF, statut opérationnel non confirmé),
+  Touba/Biankouma/Odiénné (Diarra Transport — licence suspendue le
+  24/07/2026 après un accident mortel, puis levée le 27/08/2026 par
+  l'ARTI/DGTTC), Gagnoa (KS, en plus d'UTB) et Bouaflé/Vavoua (Labelle
+  Transport, UTB). L'entrée MUGECI a été repassée en `unverified` : la
+  recherche round 2 n'a pas pu la corroborer comme entité de transport
+  (seul un acronyme proche et sans rapport, "MUGEC-CI", a été trouvé).
+  Pour Tanda, Arrah, Agnibilékrou, Boundiali, Tengréla, Dabakala, Tabou,
+  Grand-Béréby et Guéyo, toujours **aucune compagnie nommée** — à
+  confirmer sur le terrain plutôt que par recherche web.
+
+**Ce qui reste à faire** : étendre le panneau admin Flutter pour éditer ces
+tables, et surtout **compléter les données** — cette base ne couvre qu'un
+échantillon ; la majorité des compagnies régionales, lignes gbaka réelles et
+liaisons de dernier kilomètre vers les villages restent à collecter sur le
+terrain (coopératives locales, enquêtes aux gares, contact direct avec
+l'ARTI/DGTTC et les délégués du Haut Conseil des Transporteurs), comme le
+souligne le rapport de recherche round 2.
 
 ## 8. Panneau administrateur
 

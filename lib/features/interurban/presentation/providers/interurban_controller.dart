@@ -1,10 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../data/mock_interurban_repository.dart';
+import '../../../../core/providers/supabase_service_provider.dart';
+import '../../data/interurban_repository.dart';
 import '../../domain/interurban_models.dart';
 
-final interurbanRepositoryProvider = Provider((ref) => MockInterurbanRepository());
+final interurbanRepositoryProvider =
+    Provider((ref) => InterurbanRepository(ref.read(supabaseServiceProvider)));
 
 final companiesProvider = FutureProvider((ref) => ref.read(interurbanRepositoryProvider).getCompanies());
+
+final interiorCityNamesProvider =
+    FutureProvider((ref) => ref.read(interurbanRepositoryProvider).interiorCityNames());
 
 class TripSearchParams {
   const TripSearchParams({required this.origin, required this.destination, this.date});

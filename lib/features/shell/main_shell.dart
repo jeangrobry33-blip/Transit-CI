@@ -17,8 +17,10 @@ class MainShell extends StatelessWidget {
           index,
           initialLocation: index == navigationShell.currentIndex,
         ),
+        type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Accueil'),
+          BottomNavigationBarItem(icon: Icon(Icons.map_rounded), label: 'Carte'),
           BottomNavigationBarItem(icon: Icon(Icons.receipt_long_rounded), label: 'Trajets'),
           BottomNavigationBarItem(icon: Icon(Icons.star_rounded), label: 'Favoris'),
           BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Profil'),

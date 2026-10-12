@@ -1,25 +1,20 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/services/traffic_simulator.dart';
 import '../../data/mock_ride_repository.dart';
 import '../../domain/ride_models.dart';
 
 final rideRepositoryProvider = Provider((ref) => MockRideRepository());
 
-class RideBookingState {
-  const RideBookingState({
+class RideEstimateState {
+  const RideEstimateState({
     this.pickup,
     this.destination,
     this.vehicleType = VehicleType.vtcStandard,
-    this.drivers = const [],
-    this.loadingDrivers = false,
-    this.trip,
   });
 
   final PlaceSuggestion? pickup;
   final PlaceSuggestion? destination;
   final VehicleType vehicleType;
-  final List<Driver> drivers;
-  final bool loadingDrivers;
-  final RideTrip? trip;
 
   double get distanceMeters {
     if (pickup == null || destination == null) return 0;
@@ -29,30 +24,31 @@ class RideBookingState {
     return ((dx + dy) * 111000).clamp(800, 45000);
   }
 
-  int get durationMinutes => (distanceMeters / 300).round().clamp(4, 90);
+  int baseDurationMinutes() => (distanceMeters / 300).round().clamp(4, 90);
 
-  RideBookingState copyWith({
+  /// Durée ajustée selon l'heure actuelle et la météo simulée (pluie).
+  int durationMinutes({required bool isRaining}) => TrafficSimulator.adjustedMinutes(
+        baseMinutes: baseDurationMinutes(),
+        time: DateTime.now(),
+        isRaining: isRaining,
+      );
+
+  RideEstimateState copyWith({
     PlaceSuggestion? pickup,
     PlaceSuggestion? destination,
     VehicleType? vehicleType,
-    List<Driver>? drivers,
-    bool? loadingDrivers,
-    RideTrip? trip,
   }) {
-    return RideBookingState(
+    return RideEstimateState(
       pickup: pickup ?? this.pickup,
       destination: destination ?? this.destination,
       vehicleType: vehicleType ?? this.vehicleType,
-      drivers: drivers ?? this.drivers,
-      loadingDrivers: loadingDrivers ?? this.loadingDrivers,
-      trip: trip ?? this.trip,
     );
   }
 }
 
-class RideBookingController extends Notifier<RideBookingState> {
+class RideEstimateController extends Notifier<RideEstimateState> {
   @override
-  RideBookingState build() => const RideBookingState();
+  RideEstimateState build() => const RideEstimateState();
 
   MockRideRepository get _repository => ref.read(rideRepositoryProvider);
 
@@ -62,46 +58,14 @@ class RideBookingController extends Notifier<RideBookingState> {
 
   void setVehicleType(VehicleType type) => state = state.copyWith(vehicleType: type);
 
-  double estimateFare(VehicleType type) => _repository.estimateFare(type, state.distanceMeters);
+  (double low, double high) fareRange(VehicleType type) =>
+      _repository.estimateFareRange(type, state.distanceMeters);
 
-  Future<void> loadDrivers() async {
-    state = state.copyWith(loadingDrivers: true);
-    final drivers = await _repository.nearbyDrivers(state.vehicleType);
-    state = state.copyWith(drivers: drivers, loadingDrivers: false);
-  }
-
-  void confirmDriver(Driver driver) {
-    if (state.pickup == null || state.destination == null) return;
-    final trip = RideTrip(
-      id: 'ride_${DateTime.now().millisecondsSinceEpoch}',
-      pickup: state.pickup!,
-      destination: state.destination!,
-      vehicleType: state.vehicleType,
-      driver: driver,
-      estimatedFare: estimateFare(state.vehicleType),
-      distanceMeters: state.distanceMeters,
-      durationMinutes: state.durationMinutes,
-      status: RideStatus.accepted,
-    );
-    state = state.copyWith(trip: trip);
-  }
-
-  void updateTripStatus(RideStatus status) {
-    if (state.trip == null) return;
-    state = state.copyWith(trip: state.trip!.copyWith(status: status));
-  }
-
-  void cancelTrip() {
-    state = const RideBookingState();
-  }
-
-  void reset() {
-    state = const RideBookingState();
-  }
+  void reset() => state = const RideEstimateState();
 }
 
-final rideBookingProvider = NotifierProvider<RideBookingController, RideBookingState>(
-  RideBookingController.new,
+final rideEstimateProvider = NotifierProvider<RideEstimateController, RideEstimateState>(
+  RideEstimateController.new,
 );
 
 final placesSearchProvider = FutureProvider.family<List<PlaceSuggestion>, String>((ref, query) {

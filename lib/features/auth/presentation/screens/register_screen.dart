@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -131,16 +132,36 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Checkbox(
                       value: _acceptedTerms,
                       onChanged: (v) => setState(() => _acceptedTerms = v ?? false),
-                      activeColor: AppColors.orange,
+                      // orangeDark : un contour/remplissage de case a besoin
+                      // de 3:1 minimum, `orange` brut n'y arrive pas.
+                      activeColor: AppColors.orangeDark,
                     ),
                     Expanded(
-                      child: Text(
-                        'J\'accepte les conditions d\'utilisation et la politique de confidentialité',
-                        style: Theme.of(context).textTheme.bodySmall,
+                      child: RichText(
+                        text: TextSpan(
+                          style: Theme.of(context).textTheme.bodySmall,
+                          children: [
+                            const TextSpan(text: 'J\'accepte les '),
+                            TextSpan(
+                              text: 'conditions d\'utilisation',
+                              style: const TextStyle(color: AppColors.orangeInk, fontWeight: FontWeight.w600),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () => context.push(RoutePaths.terms),
+                            ),
+                            const TextSpan(text: ' et la '),
+                            TextSpan(
+                              text: 'politique de confidentialité',
+                              style: const TextStyle(color: AppColors.orangeInk, fontWeight: FontWeight.w600),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () => context.push(RoutePaths.privacyPolicy),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],

@@ -4,9 +4,18 @@ Application mobile Flutter qui centralise tous les moyens de transport de
 Côte d'Ivoire dans une seule plateforme : gbakas, wôrô-wôrô, taxis compteurs,
 bus urbains, VTC, motos-taxis et voyages interurbains (UTB, SBTA, TSR, AVS...).
 
-Ce dépôt contient un **prototype fonctionnel** complet côté client (UI, flux
-de réservation, paiement, navigation) construit en Clean Architecture,
-prêt à être connecté à un vrai backend (voir
+**Transit CI n'est pas un service de transport comme Yango** : l'app
+n'organise pas de course et n'assigne pas de chauffeur. Son rôle est
+d'aider un utilisateur qui ne connaît pas un lieu à voir, pour sa
+destination, tous les moyens de s'y rendre avec leur prix — adaptés à la
+distance (un trajet dans Abidjan n'affiche pas les mêmes options qu'un
+trajet vers une ville de l'intérieur) — avec un GPS interne complet et les
+moyens de paiement pour ce que l'app réserve réellement (billets
+interurbains, portefeuille).
+
+Ce dépôt contient un **prototype fonctionnel** complet côté client (UI,
+planification de trajet, paiement, navigation) construit en Clean
+Architecture, prêt à être connecté à un vrai backend (voir
 [`docs/BACKEND_ARCHITECTURE.md`](docs/BACKEND_ARCHITECTURE.md)).
 
 ## Fonctionnalités du prototype
@@ -14,13 +23,24 @@ prêt à être connecté à un vrai backend (voir
 - **Onboarding & authentification** : inscription, connexion, mot de passe
   oublié, vérification OTP par SMS, connexion Google/Facebook/Apple (UI +
   logique simulée), un seul type de compte utilisateur.
-- **Accueil & carte** : géolocalisation, sélection du mode de transport,
-  promotions, trajets récents, bouton SOS.
-- **VTC / taxi / moto-taxi** : recherche de destination, estimation du prix
-  et du temps, sélection du chauffeur, suivi en direct, chat/appel (UI),
-  partage de trajet, annulation, notation.
+- **Planification de trajet ("Où allez-vous ?")** : recherche unifiée d'un
+  quartier d'Abidjan ou d'une ville de l'intérieur, avec repère local
+  facultatif (adresses informelles) ; affiche automatiquement les moyens de
+  transport adaptés à la distance — lignes gbaka/wôrô-wôrô/bus urbain et
+  estimations VTC/taxi/moto pour un trajet dans Abidjan, compagnies
+  interurbaines (+ trajet pour rejoindre la gare) pour une ville de
+  l'intérieur — triables par prix ou par rapidité.
+- **Carte / GPS interne** (onglet dédié) : recherche de lieu, trafic simulé
+  selon l'heure et la météo (heures de pointe, pluie), mode hors-ligne,
+  points d'intérêt le long du trajet (stations-service, pharmacies, points
+  Mobile Money), itinéraire combiné multimodal, bouton SOS avec numéros
+  d'urgence ivoiriens (police 111, pompiers 180, SAMU 185).
+- **VTC / taxi compteur / moto-taxi** : estimation de prix et de temps
+  uniquement — Transit CI ne réserve pas la course, c'est un comparateur
+  avant de réserver ailleurs ou de héler un véhicule sur place.
 - **Gbaka / wôrô-wôrô / bus urbain** : lignes, itinéraires, points de
-  chargement, temps d'attente, prix moyen, niveau d'affluence, suivi GPS.
+  chargement, temps d'attente, prix moyen, niveau d'affluence (ajusté selon
+  le trafic et la météo), suivi GPS.
 - **Voyages interurbains** : recherche par ville, comparatif des compagnies
   (UTB, SBTA, TSR, AVS, UTRACO), sélection de sièges, paiement, billet avec
   QR code, historique.
@@ -34,12 +54,16 @@ prêt à être connecté à un vrai backend (voir
 
 ```
 lib/
-  core/                    Design system, thème, routing, widgets partagés, utils
+  core/                    Design system, thème, routing, widgets partagés, utils,
+                           simulateur de trafic/météo
   features/
     auth/                  domain / data / presentation (Clean Architecture)
     onboarding/, splash/
-    home/, shell/          tableau de bord + navigation à onglets
-    ride/                  VTC, taxi compteur, moto-taxi
+    home/, shell/          tableau de bord + navigation à onglets (5 onglets)
+    trip/                  planification "Où allez-vous ?" (lieux unifiés,
+                           options de trajet adaptées à la distance)
+    maps/                  onglet Carte/GPS : trafic, hors-ligne, POI, combiné
+    ride/                  VTC, taxi compteur, moto-taxi — estimation uniquement
     gbaka/                 gbaka, wôrô-wôrô, bus urbain
     interurban/            compagnies, recherche, sièges, billet QR
     payment/, wallet/

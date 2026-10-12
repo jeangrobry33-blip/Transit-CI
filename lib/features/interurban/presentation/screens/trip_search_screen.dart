@@ -7,29 +7,34 @@ import '../../../../core/router/route_paths.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/empty_state.dart';
-import '../../data/mock_interurban_repository.dart';
 import '../providers/interurban_controller.dart';
 import '../widgets/trip_card.dart';
 
 /// Recherche de trajets interurbains par ville de départ et d'arrivée.
 class TripSearchScreen extends ConsumerStatefulWidget {
-  const TripSearchScreen({super.key});
+  const TripSearchScreen({super.key, this.initialDestination});
+
+  /// Préremplit la destination, par exemple en arrivant depuis la
+  /// planification de trajet unifiée ("Où allez-vous ?").
+  final String? initialDestination;
 
   @override
   ConsumerState<TripSearchScreen> createState() => _TripSearchScreenState();
 }
 
 class _TripSearchScreenState extends ConsumerState<TripSearchScreen> {
-  String _origin = 'Abidjan';
-  String _destination = 'Bouaké';
+  late String _origin = 'Abidjan';
+  late String _destination = widget.initialDestination ?? 'Bouaké';
   DateTime _date = DateTime.now();
-  bool _searched = false;
+  late bool _searched = widget.initialDestination != null;
 
   Future<void> _pickCity({required bool isOrigin}) async {
+    final cities = await ref.read(interiorCityNamesProvider.future);
+    if (!mounted) return;
     final selected = await showModalBottomSheet<String>(
       context: context,
       builder: (context) => _CityPickerSheet(
-        cities: MockInterurbanRepository.ivorianCities,
+        cities: cities,
         title: isOrigin ? 'Ville de départ' : 'Ville de destination',
       ),
     );

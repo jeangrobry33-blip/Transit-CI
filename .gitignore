@@ -1,3 +1,7 @@
+# Recherches (non liées au code de l'app)
+/research_notes/
+/reports/
+
 # Miscellaneous
 *.class
 *.log

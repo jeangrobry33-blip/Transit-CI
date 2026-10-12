@@ -1,7 +1,7 @@
 import '../domain/ride_models.dart';
 
-/// Dépôt simulé pour la recherche de lieux et de chauffeurs à proximité.
-/// À remplacer par des appels à l'API Transit CI (géocodage + matching temps réel).
+/// Dépôt simulé pour la recherche de lieux et l'estimation de tarifs.
+/// À remplacer par des appels à l'API Transit CI (géocodage + barèmes réels).
 class MockRideRepository {
   static const abidjanCenter = GeoPoint(5.3599, -4.0083);
 
@@ -53,47 +53,11 @@ class MockRideRepository {
     return _places.where((p) => p.isFavorite).toList();
   }
 
-  Future<List<Driver>> nearbyDrivers(VehicleType type) async {
-    await Future.delayed(const Duration(milliseconds: 600));
-    return [
-      Driver(
-        id: 'drv_1',
-        name: 'Kouadio Yao',
-        vehicleType: type,
-        vehicleModel: 'Toyota Corolla · Gris',
-        plateNumber: 'CI 4521 AB',
-        rating: 4.9,
-        tripsCount: 1204,
-        etaMinutes: 3,
-        photoInitials: 'KY',
-      ),
-      Driver(
-        id: 'drv_2',
-        name: 'Fatou Diabaté',
-        vehicleType: type,
-        vehicleModel: 'Hyundai Accent · Blanche',
-        plateNumber: 'CI 7788 CD',
-        rating: 4.7,
-        tripsCount: 856,
-        etaMinutes: 5,
-        photoInitials: 'FD',
-      ),
-      Driver(
-        id: 'drv_3',
-        name: 'Ibrahim Traoré',
-        vehicleType: type,
-        vehicleModel: 'Suzuki Swift · Rouge',
-        plateNumber: 'CI 1092 EF',
-        rating: 4.8,
-        tripsCount: 632,
-        etaMinutes: 7,
-        photoInitials: 'IT',
-      ),
-    ];
-  }
-
-  double estimateFare(VehicleType type, double distanceMeters) {
+  /// Fourchette de prix indicative — un vrai barème dépendrait de l'opérateur
+  /// VTC/taxi choisi par l'utilisateur ; Transit CI ne fixe pas le prix final.
+  (double low, double high) estimateFareRange(VehicleType type, double distanceMeters) {
     final km = distanceMeters / 1000;
-    return type.baseFare + (type.perKm * km);
+    final mid = type.baseFare + (type.perKm * km);
+    return (mid * 0.9, mid * 1.15);
   }
 }
